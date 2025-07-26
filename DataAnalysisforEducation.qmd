@@ -143,13 +143,13 @@ hist(mtcars$mpg)
 
 Now you’ve installed R, loaded a dataset, explored it, and visualized it — all within a reproducible notebook.
 
-# Chapter 2: Data Wrangling for Educational Research 
+# Chapter 2: Data Wrangling for Educational Research
 
 Data wrangling is the essential process of cleaning, transforming, and structuring raw data into a usable format for analysis. In educational research, datasets often originate from diverse sources like student information systems, national surveys, classroom assessments, or administrative records. These raw datasets are rarely ready for immediate analysis and require extensive preparation to handle inconsistencies, missing information, and structural issues before they can be used for statistical modeling or visualization.
 
 According to Grolemund and Wickham (2019), data wrangling is the single most time-consuming task in data science, often occupying up to 80% of a researcher’s time. For educational studies, tasks such as handling missing values from student surveys, recoding demographic variables (e.g., socioeconomic status), merging student assessment data with school-level data, and creating composite scores are fundamental for ensuring the validity and reliability of research findings (Schneider et al., 2018).
 
-## 2.1 Principles of Tidy Data 
+## 2.1 Principles of Tidy Data
 
 Hadley Wickham (2014) introduced the powerful concept of **tidy data**, which provides a standard way to organize data values within a data frame.
 
@@ -448,7 +448,383 @@ To ensure your research is transparent, reproducible, and credible, follow these
 -   Wickham, H. (2014). Tidy Data. *Journal of Statistical Software*, 59(10), 1–23.
 -   Wickham, H., et al. (2019). Welcome to the tidyverse. *Journal of Open Source Software*, 4(43), 1686.
 
-# Chapter 3: Descriptive and Inferential Statistics *(Coming Soon)*
+# **Chapter 3: Descriptive and Inferential Statistics in Education**
+
+## **3.1 Descriptive Statistics: Understanding Educational Data**
+
+Descriptive statistics transform raw educational data into meaningful summaries, enabling educators to identify patterns, spot outliers, and understand distributions.
+
+### **Central Tendency Measures:**
+
+-   **Mean**: Arithmetic average (sensitive to outliers)\
+    *Educational Use*: Calculating average test scores for grade-level comparisons
+
+    r
+
+    ```         
+    mean(student_scores)
+    ```
+
+-   **Median**: Middle value in ordered data (robust to outliers)\
+    *Educational Use*: Reporting typical family income in school demographic reports
+
+    r
+
+    ```         
+    median(student_scores)
+    ```
+
+-   **Mode**: Most frequent value\
+    *Educational Use*: Identifying most common misconception in assessment responses
+
+### **Variability Measures:**
+
+-   **Range**: Difference between maximum and minimum\
+    *Educational Use*: Highlighting achievement gaps within classrooms
+
+    r
+
+    ```         
+    range(student_scores)
+    ```
+
+-   **Variance**: Average squared deviation from mean
+
+    r
+
+    ```         
+    var(student_scores)
+    ```
+
+-   **Standard Deviation**: Average deviation from mean (same units as data)\
+    *Educational Use*: Measuring consistency in rubric-based scoring
+
+    r
+
+    ```         
+    sd(student_scores)
+    ```
+
+-   **IQR**: Middle 50% of data (Q3-Q1)\
+    *Educational Use*: Identifying typical growth percentiles
+
+    r
+
+    ```         
+    IQR(student_scores)
+    ```
+
+### **Distribution Characteristics:**
+
+-   **Skewness**: Asymmetry measure (positive = right-skewed)\
+    *Educational Use*: Detecting ceiling effects in mastery assessments
+
+    r
+
+    ```         
+    library(moments) skewness(student_scores)
+    ```
+
+-   **Kurtosis**: Tail heaviness (positive = heavy tails)\
+    *Educational Use*: Checking normality for standardized tests
+
+    r
+
+    ```         
+    kurtosis(student_scores)
+    ```
+
+## **3.2 Statistical Tests: Assumptions and Diagnostics**
+
+All inferential tests require specific assumptions. Violations necessitate non-parametric alternatives.
+
+### **Parametric Test Assumption Framework:**
+
+1.  **Normality**: Residuals normally distributed
+
+2.  **Homoscedasticity**: Equal variances across groups
+
+3.  **Independence**: Observations not correlated
+
+4.  **Interval/Ratio Data**: Continuous measurement scale
+
+## **3.3 Common Inferential Tests with Diagnostics and Alternatives**
+
+### **1. Independent t-test**
+
+**Purpose**: Compare means between two independent groups (e.g., control vs. treatment)\
+**Assumptions**:
+
+-   Normality within groups
+
+-   Homogeneity of variances
+
+-   Interval/ratio data
+
+**Diagnostics**:
+
+r
+
+```         
+# Shapiro-Wilk normality test tapply(math_scores$score, math_scores$gender, shapiro.test)  # Levene's test for equal variances library(car) leveneTest(score ~ gender, data = math_scores)
+```
+
+**Implementation**:
+
+r
+
+```         
+t.test(score ~ gender, data = math_scores, var.equal = TRUE)
+```
+
+**Non-parametric Alternative**: Mann-Whitney U Test
+
+r
+
+```         
+wilcox.test(score ~ gender, data = math_scores)
+```
+
+### **2. Paired t-test**
+
+**Purpose**: Compare pre-post measurements (e.g., before/after intervention)\
+**Assumptions**:
+
+-   Normality of difference scores
+
+-   Interval/ratio data
+
+**Diagnostics**:
+
+r
+
+```         
+# Check difference score distribution diff_scores <- pre_test - post_test shapiro.test(diff_scores)
+```
+
+**Implementation**:
+
+r
+
+```         
+t.test(pre_test, post_test, paired = TRUE)
+```
+
+**Non-parametric Alternative**: Wilcoxon Signed-Rank Test
+
+r
+
+```         
+wilcox.test(pre_test, post_test, paired = TRUE)
+```
+
+### **3. One-Way ANOVA**
+
+**Purpose**: Compare ≥3 group means (e.g., teaching methods)\
+**Assumptions**:
+
+-   Normality within groups
+
+-   Homogeneity of variances
+
+-   Independence
+
+**Diagnostics**:
+
+r
+
+```         
+# Normality by group tapply(method_data$scores, method_data$method, shapiro.test)  # Homogeneity of variances bartlett.test(scores ~ method, data = method_data)
+```
+
+**Implementation**:
+
+r
+
+```         
+anova_model <- aov(scores ~ method, data = method_data) summary(anova_model)
+```
+
+**Non-parametric Alternative**: Kruskal-Wallis Test
+
+r
+
+```         
+kruskal.test(scores ~ method, data = method_data)
+```
+
+### **4. Pearson Correlation**
+
+**Purpose**: Measure linear relationship between continuous variables\
+**Assumptions**:
+
+-   Linear relationship
+
+-   Bivariate normality
+
+-   Homoscedasticity
+
+**Diagnostics**:
+
+r
+
+```         
+# Visual checks library(ggpubr) ggscatter(data.frame(reading, math), x="reading", y="math",            add = "reg.line") +   stat_cor(method = "pearson")  # Normality tests shapiro.test(reading) shapiro.test(math)
+```
+
+**Implementation**:
+
+r
+
+```         
+cor.test(reading, math, method = "pearson")
+```
+
+**Non-parametric Alternative**: Spearman's Rank Correlation
+
+r
+
+```         
+cor.test(reading, math, method = "spearman")
+```
+
+### **5. Chi-Square Test**
+
+**Purpose**: Test association between categorical variables\
+**Assumptions**:
+
+-   Independence of observations
+
+-   Expected frequencies ≥5
+
+**Diagnostics**:
+
+r
+
+```         
+# Check expected frequencies chisq.test(participation_table)$expected
+```
+
+**Implementation**:
+
+r
+
+```         
+chisq.test(participation_table)
+```
+
+**Non-parametric Alternative**: Fisher's Exact Test
+
+r
+
+```         
+fisher.test(participation_table)
+```
+
+## **3.4 Effect Size Reporting Standards**
+
+Statistical significance ≠ practical importance. Effect sizes quantify magnitude:
+
+| **Test**    | **Effect Size**  | **Interpretation**                  |
+|:------------|:-----------------|:------------------------------------|
+| t-test      | Cohen's d        | 0.2=small, 0.5=medium, 0.8=large    |
+| ANOVA       | η² (eta-squared) | 0.01=small, 0.06=medium, 0.14=large |
+| Correlation | r                | 0.1=small, 0.3=medium, 0.5=large    |
+| Chi-square  | Cramer's V       | 0.1=small, 0.3=medium, 0.5=large    |
+
+**R Implementation**:
+
+r
+
+```         
+# Cohen's d for t-test library(effsize) cohen.d(score ~ gender, data = math_scores)  # Eta-squared for ANOVA library(effectsize) eta_squared(anova_model)
+```
+
+## **3.5 Handling Assumption Violations**
+
+When assumptions aren't met:
+
+1.  **Transformations**: Apply log/square root to skewed data
+
+    r
+
+    ```         
+    log_scores <- log(student_scores)
+    ```
+
+2.  **Robust Methods**: Use trimmed means or bootstrap
+
+    r
+
+    ```         
+    # 20% trimmed mean mean(student_scores, trim = 0.2)
+    ```
+
+3.  **Non-parametric Tests**: As shown above
+
+4.  **Mixed Models**: For dependent observations
+
+    r
+
+    ```         
+    library(lme4) lmer(score ~ method + (1|classroom), data = class_data)
+    ```
+
+## **3.6 Educational Data Considerations**
+
+1.  **Nested Data**: Students within classrooms require multilevel modeling
+
+2.  **Repeated Measures**: Longitudinal data need specialized approaches (e.g., growth modeling)
+
+3.  **Missing Data**: Use multiple imputation instead of deletion
+
+    r
+
+    ```         
+    library(mice) imputed_data <- mice(education_data, m=5)
+    ```
+
+4.  **Multiple Testing**: Adjust α using Bonferroni or FDR methods
+
+    r
+
+    ```         
+    p.adjust(p_values, method = "fdr")
+    ```
+
+## **3.7 Reporting Best Practices**
+
+1.  **APA Standards**:\
+    "Reading scores significantly increased after intervention (M=85.2, SD=4.1 vs. M=78.6, SD=5.3), t(24)=4.32, p\<.001, d=0.92, 95% CI \[3.2, 9.9\]."
+
+2.  **Transparency**:
+
+    -   Report assumption checks
+
+    -   Include effect sizes and confidence intervals
+
+    -   Provide data and analysis scripts
+
+3.  **Visualization**: Always complement statistics with graphs
+
+r
+
+```         
+ggplot(math_scores, aes(x=gender, y=score)) +    geom_violin(trim=FALSE, fill="skyblue") +   geom_boxplot(width=0.1) +   stat_summary(fun=mean, geom="point", size=3, color="red") +   labs(title="Math Achievement by Gender",         subtitle="Violin plot with mean (red dot) and boxplot",        caption=paste0("t(", t_result$parameter,")=",                       round(t_result$statistic,2),                       ", p=", format.pval(t_result$p.value, eps=0.001)))
+```
+
+## **3.8 Suggested Resources**
+
+-   **Assumption Diagnostics**:\
+    Fox, J. & Weisberg, S. (2019). *An R Companion to Applied Regression*
+
+-   **Non-parametric Methods**:\
+    Hollander, M., Wolfe, D.A., & Chicken, E. (2014). *Nonparametric Statistical Methods*
+
+-   **Educational Applications**:\
+    Keith, T.Z. (2019). *Multiple Regression and Beyond*
+
+*Statistical analysis in education requires both technical competence and contextual understanding. As noted by Berliner (2002), "The most significant educational decisions should be informed by data, but never determined solely by them."*
 
 # Chapter 4: Psychometrics and Measurement *(Coming Soon)*
 
